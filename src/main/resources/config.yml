@@ -1,0 +1,9 @@
+database:
+  username: root
+  password: lx5201314
+  database-name: development
+  port: 3306
+  host: localhost
+hikariCP:
+  minimumIdle: 10
+  maximumIdle: 20

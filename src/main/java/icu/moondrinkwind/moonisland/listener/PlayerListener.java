@@ -37,8 +37,8 @@ public class PlayerListener implements Listener {
         private void damagePlayer(Player player){
             player.damage(3);
             List<PotionEffect> effects = new ArrayList<>();
-            effects.add(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
-            effects.add(new PotionEffect(PotionEffectType.SLOW, 60, 1));
+            effects.add(new PotionEffect(PotionEffectType.CONFUSION, 300, 1));
+            effects.add(new PotionEffect(PotionEffectType.SLOW, 300, 1));
             player.addPotionEffects(effects);
         }
     }
@@ -46,8 +46,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent event){
         Player player = event.getPlayer();
-        if(player.isInWater() &&
-                event.getFrom().getBlock().getType() != Material.WATER &&
+        if(player.getLocation().getBlock().getType() == Material.WATER &&
                 !players.contains(player)){
             players.add(player);
             new EffectPlayer(player, players).runTaskTimer(
