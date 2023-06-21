@@ -26,10 +26,10 @@ public final class MoonIsland extends JavaPlugin {
     public void onEnable() {
         Bukkit.getServer().getPluginManager().registerEvents(new PlayerListener(), this);
         Bukkit.getServer().getPluginManager().registerEvents(new WeatherListener(), this);
-        Bukkit.getPluginCommand("worldtest").setExecutor(new WorldTest());
-        Bukkit.getPluginCommand("moonisland").setExecutor(new icu.moondrinkwind.moonisland.command.MoonIsland());
         initWorld();
         initData();
+        Bukkit.getPluginCommand("worldtest").setExecutor(new WorldTest());
+        Bukkit.getPluginCommand("moonisland").setExecutor(new icu.moondrinkwind.moonisland.command.MoonIsland());
     }
 
     @Override
@@ -45,6 +45,7 @@ public final class MoonIsland extends JavaPlugin {
     }
 
     private void initData(){
+        saveConfig();
         saveDefaultConfig();
         databaseService = new DatabaseService();
         Connection connection = databaseService.getConnection();
@@ -76,4 +77,7 @@ public final class MoonIsland extends JavaPlugin {
         context.commit();
     }
 
+    public DatabaseService getDatabaseService() {
+        return databaseService;
+    }
 }

@@ -6,6 +6,10 @@ import icu.moondrinkwind.moonisland.entity.Island;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Result;
+import org.jooq.util.mysql.MySQLDSL;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -14,9 +18,9 @@ import java.util.List;
 
 public class DatabaseService {
     private final HikariDataSource sqlConnectionPool;
-    private static List<Island> islands = new ArrayList<>();
+    private static final List<Island> islands = new ArrayList<>();
     public final static String ISLAND_TABLE = "CREATE TABLE IF NOT EXISTS ISLAND(" +
-            "ID INT AUTO_INCREMENT," +
+            "ID LONG," +
             "NAME VARCHAR(255), " +
             "START_X INT," +
             "START_Z INT," +
@@ -24,12 +28,23 @@ public class DatabaseService {
             "END_Z INT," +
             "CENTER_X INT," +
             "CENTER_Z INT," +
-            "OWNER VARCHAR(255)," +
-            "PRIMARY KEY(ID))";
+            "OWNER VARCHAR(255))";
     public final static String PLAYER_TABLE = "CREATE TABLE IF NOT EXISTS PLAYER(" +
             "UUID VARCHAR(255)," +
             "ISLAND INT" +
             ")";
+
+    public final static String DELETE_ISLAND = "DELETE FROM ISLAND WHERE ID = '%d'";
+    public final static String INSERT_ISLAND = "INSERT INTO ISLAND(ID, NAME, START_X, START_Z, CENTER_X, CENTER_Z, END_X, END_Z, OWNER) VALUES" +
+            "('%s', '%s', %d, %d, %d, %d, %d, %d, '%s')";
+
+    public final static String INSERT_PLAYER = "INSERT INTO PLAYER(UUID, ISLAND) VALUES ('%s', %d)";
+    public final static String DELETE_PLAYER_BY_UUID = "DELETE FROM PLAYER WHERE UUID = '%s'";
+    public final static String DELETE_PLAYER_BY_ISLAND = "DELETE FROM PLAYER WHERE ISLAND = %d";
+
+    public final static String GET_ISLAND_ID = "SELECT ISLAND FROM PLAYER WHERE UUID = '%s'";
+
+    public final static String GET_ISLAND = "SELECT ID, NAME, START_X, START_Z, CENTER_X, CENTER_Z, END_X, END_Z, OWNER FROM ISLAND WHERE ID = %d";
 
     public DatabaseService(){
         YamlConfiguration config = (YamlConfiguration) Bukkit.getPluginManager().getPlugin("MoonIsland").getConfig();
@@ -70,5 +85,116 @@ public class DatabaseService {
 
     public static List<Island> getIslands(){
         return islands;
+    }
+
+    public void deleteIsland(int ID){
+        Connection connection = getConnection();
+        DSLContext context = MySQLDSL.using(connection);
+        context.execute(String.format(DELETE_ISLAND, ID));
+        context.commit();
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void createIsland(String ID, String name, int startX, int startZ, int centerX, int centerZ, int endX, int endZ, String owner){
+        Connection connection = getConnection();
+        DSLContext context = MySQLDSL.using(connection);
+        context.execute(String.format(INSERT_ISLAND, ID, name, startX, startZ, centerX, centerZ, endX, endZ, owner));
+        context.commit();
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addPlayer(String UUID, int island){
+        Connection connection = getConnection();
+        DSLContext context = MySQLDSL.using(connection);
+        context.execute(String.format(INSERT_PLAYER, UUID, island));
+        context.commit();
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void removePlayerByUUID(String UUID){
+        Connection connection = getConnection();
+        DSLContext context = MySQLDSL.using(connection);
+        context.execute(String.format(DELETE_PLAYER_BY_UUID, UUID));
+        context.commit();
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void removePlayerByIsland(int island){
+        Connection connection = getConnection();
+        DSLContext context = MySQLDSL.using(connection);
+        context.execute(String.format(DELETE_PLAYER_BY_ISLAND, island));
+        context.commit();
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long getIslandID(String UUID){
+        Connection connection = getConnection();
+        DSLContext context = MySQLDSL.using(connection);
+        Result<Record> records = context.resultQuery(String.format(GET_ISLAND, UUID)).fetch();
+        context.commit();
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return ((long) records.get(0).getValue("ISLAND"));
+    }
+
+    public boolean hasIsland(String UUID){
+        Connection connection = getConnection();
+        DSLContext context = MySQLDSL.using(connection);
+        Result<Record> records = context.resultQuery(String.format(GET_ISLAND_ID, UUID)).fetch();
+        context.commit();
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return !records.isEmpty();
+    }
+
+    public Island getIsland(long ID){
+        Connection connection = getConnection();
+        DSLContext context = MySQLDSL.using(connection);
+        Result<Record> records = context.resultQuery(String.format(GET_ISLAND, ID)).fetch();
+        Record record = records.get(0);
+        Island island = new Island();
+        island.setName(((String) record.getValue("NAME")))
+                .setOwner(Bukkit.getServer().getPlayer(
+                        (String) record.getValue("OWNER")
+                ))
+                .setCenterX((int) record.getValue("CENTER_X"))
+                .setCenterZ((int) record.getValue("CENTER_Z"))
+                .setStartX((int) record.getValue("START_X"))
+                .setStartZ((int) record.getValue("START_Z"))
+                .setEndX((int) record.getValue("END_X"))
+                .setEndZ((int) record.getValue("END_Y"));
+        context.commit();
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return island;
     }
 }

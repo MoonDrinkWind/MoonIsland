@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 public class Island {
-    private int ID;
+    private String ID;
     private String name;
     private int startX;
     private int startZ;
@@ -97,11 +97,11 @@ public class Island {
         return this;
     }
 
-    public int getID() {
+    public String getID() {
         return ID;
     }
 
-    public Island setID(int ID) {
+    public Island setID(String ID) {
         this.ID = ID;
         return this;
     }
