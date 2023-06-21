@@ -1,0 +1,11 @@
+name: MoonIsland
+version: '${project.version}'
+main: icu.moondrinkwind.moonisland.MoonIsland
+api-version: '1.20'
+depend: [Vault]
+authors: [MoonDrinkWind]
+commands:
+  worldtest:
+    aliases: [wt]
+  moonisland:
+    aliases: [mi]
