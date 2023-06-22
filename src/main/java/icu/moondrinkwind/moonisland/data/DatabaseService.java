@@ -31,20 +31,20 @@ public class DatabaseService {
             "OWNER VARCHAR(255))";
     public final static String PLAYER_TABLE = "CREATE TABLE IF NOT EXISTS PLAYER(" +
             "UUID VARCHAR(255)," +
-            "ISLAND INT" +
+            "ISLAND VARCHAR(255)" +
             ")";
 
     public final static String DELETE_ISLAND = "DELETE FROM ISLAND WHERE ID = '%d'";
     public final static String INSERT_ISLAND = "INSERT INTO ISLAND(ID, NAME, START_X, START_Z, CENTER_X, CENTER_Z, END_X, END_Z, OWNER) VALUES" +
             "('%s', '%s', %d, %d, %d, %d, %d, %d, '%s')";
 
-    public final static String INSERT_PLAYER = "INSERT INTO PLAYER(UUID, ISLAND) VALUES ('%s', %d)";
+    public final static String INSERT_PLAYER = "INSERT INTO PLAYER(UUID, ISLAND) VALUES ('%s', '%s')";
     public final static String DELETE_PLAYER_BY_UUID = "DELETE FROM PLAYER WHERE UUID = '%s'";
-    public final static String DELETE_PLAYER_BY_ISLAND = "DELETE FROM PLAYER WHERE ISLAND = %d";
+    public final static String DELETE_PLAYER_BY_ISLAND = "DELETE FROM PLAYER WHERE ISLAND = '%s'";
 
     public final static String GET_ISLAND_ID = "SELECT ISLAND FROM PLAYER WHERE UUID = '%s'";
 
-    public final static String GET_ISLAND = "SELECT ID, NAME, START_X, START_Z, CENTER_X, CENTER_Z, END_X, END_Z, OWNER FROM ISLAND WHERE ID = %d";
+    public final static String GET_ISLAND = "SELECT ID, NAME, START_X, START_Z, CENTER_X, CENTER_Z, END_X, END_Z, OWNER FROM ISLAND WHERE ID = '%s'";
 
     public DatabaseService(){
         YamlConfiguration config = (YamlConfiguration) Bukkit.getPluginManager().getPlugin("MoonIsland").getConfig();
@@ -111,7 +111,7 @@ public class DatabaseService {
         }
     }
 
-    public void addPlayer(String UUID, int island){
+    public void addPlayer(String UUID, String island){
         Connection connection = getConnection();
         DSLContext context = MySQLDSL.using(connection);
         context.execute(String.format(INSERT_PLAYER, UUID, island));
@@ -147,17 +147,17 @@ public class DatabaseService {
         }
     }
 
-    public long getIslandID(String UUID){
+    public String getIslandID(String UUID){
         Connection connection = getConnection();
         DSLContext context = MySQLDSL.using(connection);
-        Result<Record> records = context.resultQuery(String.format(GET_ISLAND, UUID)).fetch();
+        Result<Record> records = context.resultQuery(String.format(GET_ISLAND_ID, UUID)).fetch();
         context.commit();
         try {
             connection.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return ((long) records.get(0).getValue("ISLAND"));
+        return ((String) records.get(0).getValue("ISLAND"));
     }
 
     public boolean hasIsland(String UUID){
@@ -173,7 +173,7 @@ public class DatabaseService {
         return !records.isEmpty();
     }
 
-    public Island getIsland(long ID){
+    public Island getIsland(String ID){
         Connection connection = getConnection();
         DSLContext context = MySQLDSL.using(connection);
         Result<Record> records = context.resultQuery(String.format(GET_ISLAND, ID)).fetch();
@@ -188,7 +188,7 @@ public class DatabaseService {
                 .setStartX((int) record.getValue("START_X"))
                 .setStartZ((int) record.getValue("START_Z"))
                 .setEndX((int) record.getValue("END_X"))
-                .setEndZ((int) record.getValue("END_Y"));
+                .setEndZ((int) record.getValue("END_Z"));
         context.commit();
         try {
             connection.close();

@@ -52,6 +52,7 @@ public class MoonIsland implements CommandExecutor {
             DatabaseService.getIslands().add(island);
             databaseService.createIsland(island.getID(), "NULL",
                     island.getStartX(), island.getStartZ(), island.getCenterX(), island.getCenterZ(), island.getEndX(), island.getEndZ(), island.getOwner().getUniqueId().toString());
+            databaseService.addPlayer(player.getUniqueId().toString(), island.getID());
             Location center = new Location(Bukkit.getWorld("island"), island.getCenterX() ,64, island.getCenterZ());
             center.getBlock().setType(Material.BEDROCK);
             center.setY(65);

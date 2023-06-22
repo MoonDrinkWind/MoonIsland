@@ -66,7 +66,7 @@ public final class MoonIsland extends JavaPlugin {
                     .setStartX((int) record.getValue("START_X"))
                     .setStartZ((int) record.getValue("START_Z"))
                     .setEndX((int) record.getValue("END_X"))
-                    .setEndZ((int) record.getValue("END_Y"));
+                    .setEndZ((int) record.getValue("END_Z"));
 
             Result<Record> playerList = context.select().from("PLAYER").where("island = " + island.getID()).fetch();
             List<Player> players = new ArrayList<>();
